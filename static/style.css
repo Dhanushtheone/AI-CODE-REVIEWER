@@ -1,0 +1,164 @@
+body{
+    background:#eef2f7;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Main Cards */
+
+.card{
+    border:none;
+    border-radius:20px;
+}
+
+/* Headings */
+
+h1{
+    font-weight:700;
+    color:#1e293b;
+}
+
+h3{
+    font-weight:600;
+}
+
+h4{
+    font-weight:600;
+}
+
+/* Textarea */
+
+.code-area{
+    font-family:Consolas, monospace;
+    font-size:15px;
+    border-radius:12px;
+    resize:vertical;
+}
+
+/* Buttons */
+
+.btn{
+    border-radius:12px;
+    font-weight:600;
+}
+
+/* Statistics Cards */
+
+.stat-card{
+    transition:0.3s;
+    border-radius:15px;
+}
+
+.stat-card:hover{
+    transform:translateY(-5px);
+}
+
+/* Progress Bar */
+
+.progress{
+    border-radius:20px;
+    overflow:hidden;
+}
+
+.progress-bar{
+    font-size:14px;
+    font-weight:bold;
+}
+
+/* Report Section */
+
+.report-box{
+    background:#1e1e1e;
+    color:#ffffff;
+    padding:20px;
+    border-radius:15px;
+    max-height:500px;
+    overflow:auto;
+    font-size:14px;
+}
+
+/* Syntax Highlighted Code */
+
+.code-box{
+    background:#272822;
+    border-radius:15px;
+    padding:20px;
+    overflow:auto;
+    color:white;
+}
+
+/* Suggestions */
+
+ul{
+    padding-left:20px;
+}
+
+li{
+    margin-bottom:8px;
+}
+
+/* Alert Boxes */
+
+.alert{
+    border-radius:15px;
+}
+
+/* Badges */
+
+.badge{
+    padding:10px 15px;
+}
+
+/* File Upload */
+
+input[type="file"]{
+    border-radius:10px;
+}
+
+/* Loading Section */
+
+#loadingSection{
+    animation:fadeIn 0.4s ease-in;
+}
+
+@keyframes fadeIn{
+
+    from{
+        opacity:0;
+    }
+
+    to{
+        opacity:1;
+    }
+}
+
+/* Scrollbar */
+
+::-webkit-scrollbar{
+    width:8px;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#888;
+    border-radius:10px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+    background:#555;
+}
+
+/* Mobile Responsive */
+
+@media(max-width:768px){
+
+    h1{
+        font-size:28px;
+    }
+
+    .report-box{
+        font-size:12px;
+    }
+
+    .code-box{
+        font-size:12px;
+    }
+}

@@ -1,0 +1,32 @@
+[project]
+name = "ai-code-reviewer"
+version = "0.1.0"
+description = "An AI-powered code review tool"
+readme = "README.md"
+requires-python = ">=3.13"
+authors = [
+    { name = "Developer" }
+]
+keywords = ["code-review", "ai", "groq"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "fastapi==0.109.1",
+    "uvicorn==0.23.2",
+    "jinja2==3.1.6",
+    "python-multipart==0.0.8",
+    "pygments==2.16.1",
+    "pylint==4.0.5",
+]
+
