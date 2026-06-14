@@ -1,7 +1,5 @@
-# Defining a function that calculates the square of a number
-def square_number(n):
-    return n * n
+def name(myname):
+    print("Hello ", myname)
 
-# Calling the function
-result = square_number(5)
-print(f"The square of 5 is: {result}")
+if __name__=="__main__":
+    name("sangeeth")

@@ -59,3 +59,201 @@ Your code has been rated at 2.50/10 (previous run: 10.00/10, -7.50)
 
 
 
+
+============================================================
+2026-06-13 14:56:51.897257
+Score: 8.64/10
+************* Module sample
+uploads\sample.py:70:0: C0304: Final newline missing (missing-final-newline)
+uploads\sample.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+uploads\sample.py:3:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\sample.py:3:16: W0621: Redefining name 'code' from outer scope (line 64) (redefined-outer-name)
+uploads\sample.py:3:0: R0912: Too many branches (17/12) (too-many-branches)
+uploads\sample.py:64:4: C0103: Constant name "code" doesn't conform to UPPER_CASE naming style (invalid-name)
+
+------------------------------------------------------------------
+Your code has been rated at 8.64/10 (previous run: 2.50/10, +6.14)
+
+
+
+
+============================================================
+2026-06-14 17:14:32.887937
+Score: 0.00/10 | Issues: 12
+************* Module sample
+uploads\sample.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+uploads\sample.py:4:0: C0103: Constant name "x" doesn't conform to UPPER_CASE naming style (invalid-name)
+uploads\sample.py:5:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\sample.py:5:0: C0103: Function name "badFunction" doesn't conform to snake_case naming style (invalid-name)
+uploads\sample.py:5:20: W0613: Unused argument 'c' (unused-argument)
+uploads\sample.py:9:0: C0115: Missing class docstring (missing-class-docstring)
+uploads\sample.py:9:0: C0103: Class name "myClass" doesn't conform to PascalCase naming style (invalid-name)
+uploads\sample.py:10:4: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\sample.py:10:4: C0103: Method name "myMethod" doesn't conform to snake_case naming style (invalid-name)
+uploads\sample.py:9:0: R0903: Too few public methods (1/2) (too-few-public-methods)
+uploads\sample.py:1:0: W0611: Unused import os (unused-import)
+uploads\sample.py:2:0: W0611: Unused import sys (unused-import)
+
+------------------------------------------------------------------
+Your code has been rated at 0.00/10 (previous run: 8.64/10, -8.64)
+
+
+
+
+============================================================
+2026-06-14 17:14:46.763378
+Score: 0.00/10 | Issues: 3
+************* Module sample
+uploads\sample.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+uploads\sample.py:2:0: C0103: Constant name "x" doesn't conform to UPPER_CASE naming style (invalid-name)
+uploads\sample.py:1:0: W0611: Unused import os (unused-import)
+
+------------------------------------------------------------------
+Your code has been rated at 0.00/10 (previous run: 0.00/10, +0.00)
+
+
+
+
+============================================================
+2026-06-14 17:14:58.781762
+Score: 0.00/10 | Issues: 3
+************* Module sample
+uploads\sample.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+uploads\sample.py:2:0: C0103: Constant name "x" doesn't conform to UPPER_CASE naming style (invalid-name)
+uploads\sample.py:1:0: W0611: Unused import os (unused-import)
+
+------------------------------------------------------------------
+Your code has been rated at 0.00/10 (previous run: 0.00/10, +0.00)
+
+
+
+
+============================================================
+2026-06-14 17:17:18.318546
+Score: 0.00/10 | Issues: 3
+************* Module sample
+uploads\sample.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+uploads\sample.py:2:0: C0103: Constant name "x" doesn't conform to UPPER_CASE naming style (invalid-name)
+uploads\sample.py:1:0: W0611: Unused import os (unused-import)
+
+------------------------------------------------------------------
+Your code has been rated at 0.00/10 (previous run: 0.00/10, +0.00)
+
+
+
+
+============================================================
+2026-06-14 17:18:33.734891
+Score: 0.00/10 | Issues: 12
+************* Module sample
+uploads\sample.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+uploads\sample.py:4:0: C0103: Constant name "x" doesn't conform to UPPER_CASE naming style (invalid-name)
+uploads\sample.py:5:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\sample.py:5:0: C0103: Function name "badFunction" doesn't conform to snake_case naming style (invalid-name)
+uploads\sample.py:5:20: W0613: Unused argument 'c' (unused-argument)
+uploads\sample.py:9:0: C0115: Missing class docstring (missing-class-docstring)
+uploads\sample.py:9:0: C0103: Class name "myClass" doesn't conform to PascalCase naming style (invalid-name)
+uploads\sample.py:10:4: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\sample.py:10:4: C0103: Method name "myMethod" doesn't conform to snake_case naming style (invalid-name)
+uploads\sample.py:9:0: R0903: Too few public methods (1/2) (too-few-public-methods)
+uploads\sample.py:1:0: W0611: Unused import os (unused-import)
+uploads\sample.py:2:0: W0611: Unused import sys (unused-import)
+
+------------------------------------------------------------------
+Your code has been rated at 0.00/10 (previous run: 0.00/10, +0.00)
+
+
+
+
+============================================================
+2026-06-14 17:19:09.476946
+Score: 0.0/10 | Issues: 1
+************* Module sample
+uploads\sample.py:1:29: E0001: Parsing failed: 'invalid syntax (sample, line 1)' (syntax-error)
+
+
+
+============================================================
+2026-06-14 17:19:10.216678
+Score: 0.0/10 | Issues: 1
+************* Module sample
+uploads\sample.py:1:8: E0001: Parsing failed: ''(' was never closed (sample, line 1)' (syntax-error)
+
+
+
+============================================================
+2026-06-14 17:19:31.145474
+Score: 10.00/10 | Issues: 0
+
+--------------------------------------------------------------------
+Your code has been rated at 10.00/10 (previous run: 0.00/10, +10.00)
+
+
+
+
+============================================================
+2026-06-14 17:19:44.675427
+Score: 0.00/10 | Issues: 18
+************* Module sample
+uploads\sample.py:14:0: C0304: Final newline missing (missing-final-newline)
+uploads\sample.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+uploads\sample.py:5:0: C0103: Constant name "unusedVar" doesn't conform to UPPER_CASE naming style (invalid-name)
+uploads\sample.py:7:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\sample.py:7:0: C0103: Function name "badFunction" doesn't conform to snake_case naming style (invalid-name)
+uploads\sample.py:7:0: R0913: Too many arguments (6/5) (too-many-arguments)
+uploads\sample.py:7:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
+uploads\sample.py:7:20: W0613: Unused argument 'c' (unused-argument)
+uploads\sample.py:7:22: W0613: Unused argument 'd' (unused-argument)
+uploads\sample.py:7:24: W0613: Unused argument 'e' (unused-argument)
+uploads\sample.py:7:26: W0613: Unused argument 'f' (unused-argument)
+uploads\sample.py:11:0: C0115: Missing class docstring (missing-class-docstring)
+uploads\sample.py:11:0: C0103: Class name "myClass" doesn't conform to PascalCase naming style (invalid-name)
+uploads\sample.py:12:4: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\sample.py:12:4: C0103: Method name "myMethod" doesn't conform to snake_case naming style (invalid-name)
+uploads\sample.py:11:0: R0903: Too few public methods (1/2) (too-few-public-methods)
+uploads\sample.py:1:0: W0611: Unused import os (unused-import)
+uploads\sample.py:2:0: W0611: Unused import sys (unused-import)
+
+--------------------------------------------------------------------
+Your code has been rated at 0.00/10 (previous run: 10.00/10, -10.00)
+
+
+
+
+============================================================
+2026-06-14 17:20:11.039969
+Score: 0.0/10 | Issues: 1
+************* Module sample
+uploads\sample.py:1:7: E0001: Parsing failed: 'unterminated string literal (detected at line 1) (sample, line 1)' (syntax-error)
+
+
+
+============================================================
+2026-06-14 17:21:22.611511
+Score: 0.0/10 | Issues: 1
+************* Module sample
+uploads\sample.py:2:28: E0001: Parsing failed: 'invalid syntax (sample, line 2)' (syntax-error)
+
+
+
+============================================================
+2026-06-14 17:21:54.368329
+Score: 0.0/10 | Issues: 1
+************* Module sample
+uploads\sample.py:4:4: E0001: Parsing failed: 'invalid syntax. Maybe you meant '==' or ':=' instead of '='? (sample, line 4)' (syntax-error)
+
+
+
+============================================================
+2026-06-14 17:22:21.340553
+Score: 2.50/10 | Issues: 3
+************* Module sample
+uploads\sample.py:5:0: C0304: Final newline missing (missing-final-newline)
+uploads\sample.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+uploads\sample.py:1:0: C0116: Missing function or method docstring (missing-function-docstring)
+
+------------------------------------------------------------------
+Your code has been rated at 2.50/10 (previous run: 0.00/10, +2.50)
+
+
+

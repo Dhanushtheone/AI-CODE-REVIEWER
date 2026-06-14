@@ -1,221 +1,401 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PyLens — Review Report</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #21263a;
+    --border: #2e3350;
+    --accent: #6c63ff;
+    --text: #e2e8f0;
+    --muted: #718096;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
 
-    <meta charset="UTF-8">
+  /* ── Score ring ── */
+  .score-section { background: linear-gradient(135deg, #0f1117 0%, #1a1040 60%, #0f1117 100%); padding: 2.5rem 0 2rem; text-align: center; position: relative; }
+  .score-section::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 60%, rgba(108,99,255,.12) 0%, transparent 70%); }
+  .ring-wrap { position: relative; width: 140px; height: 140px; margin: 0 auto 1rem; }
+  .ring-svg { transform: rotate(-90deg); }
+  .ring-track { fill: none; stroke: rgba(255,255,255,.06); stroke-width: 10; }
+  .ring-fill  { fill: none; stroke-width: 10; stroke-linecap: round; stroke-dasharray: 345; transition: stroke-dashoffset 1.2s cubic-bezier(.25,.8,.25,1); }
+  .ring-fill.excellent { stroke: url(#grad-ex); }
+  .ring-fill.good      { stroke: url(#grad-good); }
+  .ring-fill.needs     { stroke: url(#grad-needs); }
+  .ring-fill.poor      { stroke: url(#grad-poor); }
+  .ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring-score { font-size: 2rem; font-weight: 800; line-height: 1; }
+  .ring-sub   { font-size: .72rem; color: var(--muted); margin-top: .1rem; }
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+  .status-badge { display: inline-block; padding: .35rem 1.2rem; border-radius: 999px; font-weight: 700; font-size: .95rem; letter-spacing: .04em; margin-bottom: 1rem; }
 
-    <title>AI Code Review Report</title>
+  /* ── Stat chips ── */
+  .stat-row { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; padding: 0 1rem; }
+  .stat-chip { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: .75rem 1.4rem; text-align: center; min-width: 100px; transition: .2s; }
+  .stat-chip:hover { transform: translateY(-3px); }
+  .stat-chip-num  { font-size: 1.7rem; font-weight: 800; line-height: 1; }
+  .stat-chip-lbl  { font-size: .75rem; color: var(--muted); margin-top: .2rem; text-transform: uppercase; letter-spacing: .06em; }
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+  /* ── Section headers ── */
+  .section-label { color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; margin-bottom: 1rem; }
 
-    <link rel="stylesheet"
-          href="{{ request.url_for('static', path='style.css') }}">
+  /* ── Issue tree ── */
+  .tree-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 1.2rem; }
+  .tree-cat-header { display: flex; align-items: center; gap: .75rem; padding: 1rem 1.2rem; cursor: pointer; user-select: none; }
+  .tree-cat-header:hover { background: rgba(255,255,255,.03); }
+  .cat-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; flex-shrink: 0; }
+  .cat-title { font-weight: 700; font-size: 1rem; }
+  .cat-desc  { font-size: .8rem; color: var(--muted); margin-top: .1rem; }
+  .cat-count { margin-left: auto; background: rgba(255,255,255,.08); border-radius: 999px; padding: .2rem .7rem; font-size: .8rem; font-weight: 700; white-space: nowrap; }
+  .chevron { margin-left: .5rem; transition: .2s; color: var(--muted); }
+  .chevron.open { transform: rotate(90deg); }
 
-    <style>
-        {{ css_style|safe }}
-    </style>
+  .tree-body { border-top: 1px solid var(--border); }
 
+  /* Group rows */
+  .group-row { display: flex; align-items: center; gap: .6rem; padding: .75rem 1.2rem .75rem 2rem; border-bottom: 1px solid rgba(255,255,255,.04); cursor: pointer; }
+  .group-row:hover { background: rgba(255,255,255,.03); }
+  .group-row:last-child { border-bottom: none; }
+  .group-connector { color: #3d4451; font-family: monospace; font-size: .85rem; flex-shrink: 0; }
+  .group-name { font-size: .88rem; font-weight: 600; flex: 1; }
+  .group-symbol { font-size: .75rem; color: var(--muted); font-family: monospace; }
+  .group-pep { font-size: .72rem; padding: .15rem .5rem; border-radius: 6px; background: rgba(108,99,255,.15); color: #a78bfa; font-weight: 600; white-space: nowrap; }
+  .group-cnt { font-size: .78rem; color: var(--muted); white-space: nowrap; }
+  .group-chevron { color: var(--muted); font-size: .75rem; transition: .2s; }
+  .group-chevron.open { transform: rotate(90deg); }
+
+  /* Issue leaf cards */
+  .issue-list { background: #0d1117; }
+  .issue-card { padding: 1rem 1.2rem 1rem 3rem; border-bottom: 1px solid rgba(255,255,255,.04); }
+  .issue-card:last-child { border-bottom: none; }
+  .issue-card-header { display: flex; align-items: flex-start; gap: .6rem; margin-bottom: .6rem; }
+  .issue-loc { font-family: monospace; font-size: .78rem; color: var(--muted); white-space: nowrap; padding-top: .05rem; }
+  .issue-msg { font-size: .88rem; color: var(--text); flex: 1; line-height: 1.4; }
+  .issue-code-badge { font-size: .72rem; font-family: monospace; padding: .15rem .45rem; border-radius: 6px; border: 1px solid; white-space: nowrap; }
+
+  /* Context code block */
+  .context-block { background: #161b22; border-radius: 8px; overflow: hidden; margin: .5rem 0; font-family: monospace; font-size: .8rem; }
+  .ctx-line { display: flex; gap: .6rem; padding: .15rem .8rem; }
+  .ctx-line.error-line { background: rgba(252,129,129,.08); border-left: 3px solid #fc8181; }
+  .ctx-line.normal-line { border-left: 3px solid transparent; }
+  .ctx-lnum { color: #3d4451; min-width: 28px; text-align: right; flex-shrink: 0; }
+  .ctx-content { color: #c9d1d9; white-space: pre; overflow-x: auto; flex: 1; }
+  .error-line .ctx-lnum { color: #fc8181; }
+  .error-line .ctx-content { color: #fca5a5; }
+
+  /* Fix tip box */
+  .tip-box { background: rgba(72,187,120,.07); border: 1px solid rgba(72,187,120,.2); border-radius: 8px; padding: .6rem .9rem; font-size: .82rem; color: #86efac; margin-top: .5rem; line-height: 1.5; }
+  .tip-label { font-weight: 700; color: #48bb78; margin-bottom: .2rem; font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; }
+
+  /* PEP link */
+  .pep-link { display: inline-flex; align-items: center; gap: .35rem; font-size: .77rem; color: #a78bfa; text-decoration: none; padding: .2rem .6rem; border-radius: 6px; background: rgba(108,99,255,.1); border: 1px solid rgba(108,99,255,.2); margin-top: .4rem; transition: .15s; }
+  .pep-link:hover { background: rgba(108,99,255,.2); color: #c4b5fd; }
+
+  /* ── Code preview ── */
+  .code-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .code-bar { background: var(--surface2); border-bottom: 1px solid var(--border); padding: .55rem 1rem; display: flex; align-items: center; gap: .5rem; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .dot-r { background: #fc8181; } .dot-y { background: #f6e05e; } .dot-g { background: #48bb78; }
+  .code-file-name { color: var(--muted); font-size: .82rem; font-family: monospace; margin-left: .4rem; }
+  .code-inner { padding: 0; overflow: auto; max-height: 480px; }
+  .highlight { margin: 0 !important; background: #0d1117 !important; }
+  .highlight table { margin: 0; width: 100%; border-collapse: collapse; }
+  .highlight .linenodiv pre { padding: .8rem .6rem .8rem .8rem; color: #3d4451 !important; background: #0d1117 !important; font-size: 13px; }
+  .highlight pre { padding: .8rem 1rem; font-size: 13px; line-height: 1.7; }
+
+  /* ── Back button ── */
+  .btn-back { display: inline-flex; align-items: center; gap: .5rem; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 12px; padding: .7rem 1.5rem; font-weight: 600; text-decoration: none; transition: .2s; }
+  .btn-back:hover { background: var(--surface2); color: var(--text); transform: translateY(-1px); }
+
+  /* Empty state */
+  .empty-tree { text-align: center; padding: 2.5rem 1rem; color: var(--muted); }
+  .empty-icon { font-size: 2.5rem; margin-bottom: .5rem; }
+
+  /* Bar chart */
+  .bar-chart { display: flex; flex-direction: column; gap: .5rem; }
+  .bar-row { display: flex; align-items: center; gap: .75rem; }
+  .bar-label { font-size: .8rem; min-width: 80px; color: var(--muted); }
+  .bar-track { flex: 1; height: 8px; background: rgba(255,255,255,.06); border-radius: 999px; overflow: hidden; }
+  .bar-fill  { height: 100%; border-radius: 999px; transition: width 1s ease; }
+  .bar-val   { font-size: .8rem; font-weight: 700; min-width: 24px; text-align: right; }
+
+  /* Scroll-in animation */
+  .fade-in { opacity: 0; transform: translateY(16px); animation: fadeUp .4s forwards; }
+  @keyframes fadeUp { to { opacity: 1; transform: none; } }
+  .fade-in:nth-child(2) { animation-delay: .08s; }
+  .fade-in:nth-child(3) { animation-delay: .16s; }
+  .fade-in:nth-child(4) { animation-delay: .24s; }
+
+  /* Collapsible hidden */
+  .collapsible { display: none; }
+  .collapsible.open { display: block; }
+</style>
 </head>
-
 <body>
 
-<div class="container mt-5">
-
-    <div class="card shadow-lg p-4">
-
-        <h1 class="text-center mb-4">
-            📊 Code Review Report
-        </h1>
-
-        <!-- Score -->
-
-        <div class="alert alert-success">
-
-            <h3>
-                Quality Score : {{ score }}/10
-            </h3>
-
-        </div>
-
-        <!-- Progress Bar -->
-
-        <div class="progress mb-4"
-             style="height:30px;">
-
-            <div class="progress-bar progress-bar-striped progress-bar-animated"
-                 role="progressbar"
-                 style="width: {{ score|float * 10 }}%;">
-
-                {{ score }}/10
-
-            </div>
-
-        </div>
-
-        <!-- Status Badge -->
-
-        <div class="text-center mb-4">
-
-            {% if status == "Excellent" %}
-
-                <span class="badge bg-success fs-5">
-                    {{ status }}
-                </span>
-
-            {% elif status == "Good" %}
-
-                <span class="badge bg-primary fs-5">
-                    {{ status }}
-                </span>
-
-            {% elif status == "Needs Improvement" %}
-
-                <span class="badge bg-warning text-dark fs-5">
-                    {{ status }}
-                </span>
-
-            {% else %}
-
-                <span class="badge bg-danger fs-5">
-                    {{ status }}
-                </span>
-
-            {% endif %}
-
-        </div>
-
-        <!-- Statistics -->
-
-        <div class="row text-center">
-
-            <div class="col-md-4 mb-3">
-
-                <div class="card stat-card bg-danger text-white">
-
-                    <div class="card-body">
-
-                        <h4>{{ errors }}</h4>
-
-                        <p>Errors</p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-md-4 mb-3">
-
-                <div class="card stat-card bg-warning">
-
-                    <div class="card-body">
-
-                        <h4>{{ warnings }}</h4>
-
-                        <p>Warnings</p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-md-4 mb-3">
-
-                <div class="card stat-card bg-info text-white">
-
-                    <div class="card-body">
-
-                        <h4>{{ conventions }}</h4>
-
-                        <p>Conventions</p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- AI Suggestions -->
-
-        <div class="card mt-4">
-
-            <div class="card-header">
-
-                🤖 AI Suggestions
-
-            </div>
-
-            <div class="card-body">
-
-                <ul>
-
-                    {% for suggestion in suggestions %}
-
-                    <li>{{ suggestion }}</li>
-
-                    {% endfor %}
-
-                </ul>
-
-            </div>
-
-        </div>
-
-        <!-- Code Preview -->
-
-        <div class="mt-4">
-
-            <h3>
-                📝 Code Preview
-            </h3>
-
-            <div class="code-box">
-
-                {{ highlighted_code|safe }}
-
-            </div>
-
-        </div>
-
-        <!-- Pylint Report -->
-
-        <div class="mt-4">
-
-            <h3>
-                📄 Detailed Report
-            </h3>
-
-            <pre class="report-box">
-{{ review }}
-            </pre>
-
-        </div>
-
-        <!-- Back Button -->
-
-        <div class="text-center mt-4">
-
-            <a href="/"
-               class="btn btn-secondary btn-lg">
-
-                Review Another File
-
-            </a>
-
-        </div>
-
+<!-- Hero / score -->
+<div class="score-section">
+  <div class="container position-relative" style="max-width:860px;">
+
+    <div class="ring-wrap">
+      <svg class="ring-svg" viewBox="0 0 120 120" width="140" height="140">
+        <defs>
+          <linearGradient id="grad-ex" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#48bb78"/><stop offset="100%" stop-color="#38bdf8"/>
+          </linearGradient>
+          <linearGradient id="grad-good" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#6c63ff"/><stop offset="100%" stop-color="#48bb78"/>
+          </linearGradient>
+          <linearGradient id="grad-needs" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#fbbf24"/>
+          </linearGradient>
+          <linearGradient id="grad-poor" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#f97316"/>
+          </linearGradient>
+        </defs>
+        <circle class="ring-track" cx="60" cy="60" r="54"/>
+        <circle class="ring-fill {{ status|lower|replace(' ','') }}"
+          id="ringFill" cx="60" cy="60" r="54"
+          style="stroke-dashoffset:345;"
+        />
+      </svg>
+      <div class="ring-label">
+        <div class="ring-score">{{ score }}</div>
+        <div class="ring-sub">out of 10</div>
+      </div>
     </div>
+
+    {% if status == "Excellent" %}
+      <div class="status-badge" style="background:rgba(72,187,120,.2);color:#48bb78;border:1px solid rgba(72,187,120,.35);">Excellent</div>
+    {% elif status == "Good" %}
+      <div class="status-badge" style="background:rgba(108,99,255,.2);color:#a78bfa;border:1px solid rgba(108,99,255,.35);">Good</div>
+    {% elif status == "Needs Improvement" %}
+      <div class="status-badge" style="background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3);">Needs Improvement</div>
+    {% else %}
+      <div class="status-badge" style="background:rgba(239,68,68,.15);color:#fc8181;border:1px solid rgba(239,68,68,.3);">{{ status }}</div>
+    {% endif %}
+
+    <!-- Stat chips -->
+    <div class="stat-row mt-1">
+      <div class="stat-chip fade-in">
+        <div class="stat-chip-num" style="color:#fc8181;">{{ errors }}</div>
+        <div class="stat-chip-lbl">Errors</div>
+      </div>
+      <div class="stat-chip fade-in">
+        <div class="stat-chip-num" style="color:#f6e05e;">{{ warnings }}</div>
+        <div class="stat-chip-lbl">Warnings</div>
+      </div>
+      <div class="stat-chip fade-in">
+        <div class="stat-chip-num" style="color:#63b3ed;">{{ conventions }}</div>
+        <div class="stat-chip-lbl">Conventions</div>
+      </div>
+      <div class="stat-chip fade-in">
+        <div class="stat-chip-num" style="color:#a78bfa;">{{ refactors }}</div>
+        <div class="stat-chip-lbl">Refactors</div>
+      </div>
+      <div class="stat-chip fade-in">
+        <div class="stat-chip-num" style="color:var(--muted);">{{ total_lines }}</div>
+        <div class="stat-chip-lbl">Lines</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="container py-4" style="max-width:860px;">
+
+  {% if error_msg %}
+  <div style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:14px;padding:1.2rem 1.4rem;color:#fc8181;margin-bottom:1.5rem;">
+    <strong>Error:</strong> {{ error_msg }}
+  </div>
+  {% endif %}
+
+  <!-- Issue distribution bar -->
+  {% if total_issues > 0 %}
+  <div class="section-label">Issue Breakdown</div>
+  <div class="tree-card mb-4 p-3">
+    <div class="bar-chart">
+      {% if errors > 0 %}
+      <div class="bar-row">
+        <div class="bar-label">Errors</div>
+        <div class="bar-track"><div class="bar-fill" style="width:{{ (errors / total_issues * 100)|round|int }}%;background:#ef4444;" data-w="{{ (errors / total_issues * 100)|round|int }}"></div></div>
+        <div class="bar-val" style="color:#fc8181;">{{ errors }}</div>
+      </div>
+      {% endif %}
+      {% if warnings > 0 %}
+      <div class="bar-row">
+        <div class="bar-label">Warnings</div>
+        <div class="bar-track"><div class="bar-fill" style="width:{{ (warnings / total_issues * 100)|round|int }}%;background:#f59e0b;" data-w="{{ (warnings / total_issues * 100)|round|int }}"></div></div>
+        <div class="bar-val" style="color:#f6e05e;">{{ warnings }}</div>
+      </div>
+      {% endif %}
+      {% if conventions > 0 %}
+      <div class="bar-row">
+        <div class="bar-label">Conventions</div>
+        <div class="bar-track"><div class="bar-fill" style="width:{{ (conventions / total_issues * 100)|round|int }}%;background:#3b82f6;" data-w="{{ (conventions / total_issues * 100)|round|int }}"></div></div>
+        <div class="bar-val" style="color:#63b3ed;">{{ conventions }}</div>
+      </div>
+      {% endif %}
+      {% if refactors > 0 %}
+      <div class="bar-row">
+        <div class="bar-label">Refactors</div>
+        <div class="bar-track"><div class="bar-fill" style="width:{{ (refactors / total_issues * 100)|round|int }}%;background:#8b5cf6;" data-w="{{ (refactors / total_issues * 100)|round|int }}"></div></div>
+        <div class="bar-val" style="color:#a78bfa;">{{ refactors }}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Issue Tree -->
+  <div class="section-label">Issue Diagnosis Tree</div>
+
+  {% if tree %}
+    {% for cat, cat_data in tree.items() %}
+    <div class="tree-card fade-in" id="tree-{{ cat }}">
+
+      <!-- Category header -->
+      <div class="tree-cat-header" onclick="toggleCat('cat-body-{{ cat }}', 'chev-{{ cat }}')">
+        <div class="cat-icon" style="background:{{ cat_data.bg }};color:{{ cat_data.color }};">
+          {{ cat_data.icon }}
+        </div>
+        <div>
+          <div class="cat-title" style="color:{{ cat_data.color }};">{{ cat_data.label }}s</div>
+          <div class="cat-desc">{{ cat_data.desc }}</div>
+        </div>
+        <div class="cat-count" style="color:{{ cat_data.color }};">{{ cat_data.count }}</div>
+        <span class="chevron open" id="chev-{{ cat }}">▶</span>
+      </div>
+
+      <!-- Groups -->
+      <div class="tree-body collapsible open" id="cat-body-{{ cat }}">
+        {% for group in cat_data.groups %}
+        <div>
+          <!-- Group header row -->
+          <div class="group-row" onclick="toggleCat('grp-body-{{ cat }}-{{ loop.index }}', 'gchev-{{ cat }}-{{ loop.index }}')">
+            <span class="group-connector">{% if loop.last %}└──{% else %}├──{% endif %}</span>
+            <div style="width:8px;height:8px;border-radius:50%;background:{{ group.color }};flex-shrink:0;"></div>
+            <span class="group-name">{{ group.name }}</span>
+            <span class="group-symbol">{{ group.symbol }}</span>
+            {% if group.pep %}
+            <span class="group-pep">{{ group.pep }}</span>
+            {% endif %}
+            <span class="group-cnt">×{{ group.findings|length }}</span>
+            <span class="group-chevron open" id="gchev-{{ cat }}-{{ loop.index }}">▶</span>
+          </div>
+
+          <!-- Issue leaves -->
+          <div class="issue-list collapsible open" id="grp-body-{{ cat }}-{{ loop.index }}">
+            {% for issue in group.findings %}
+            <div class="issue-card">
+
+              <div class="issue-card-header">
+                <span class="issue-loc">Line {{ issue.line }}, Col {{ issue.col }}</span>
+                <span class="issue-code-badge" style="color:{{ issue.color }};border-color:{{ issue.color }}22;background:{{ issue.bg }};">{{ issue.code }}</span>
+                <span class="issue-msg">{{ issue.message }}</span>
+              </div>
+
+              <!-- Context code -->
+              {% if issue.context %}
+              <div class="context-block">
+                {% for ctx in issue.context %}
+                <div class="ctx-line {% if ctx.is_error %}error-line{% else %}normal-line{% endif %}">
+                  <span class="ctx-lnum">{{ ctx.number }}</span>
+                  <span class="ctx-content">{{ ctx.content }}</span>
+                </div>
+                {% endfor %}
+              </div>
+              {% endif %}
+
+              <!-- Tip -->
+              {% if issue.tip %}
+              <div class="tip-box">
+                <div class="tip-label">How to fix</div>
+                {{ issue.tip }}
+              </div>
+              {% endif %}
+
+              <!-- PEP link -->
+              {% if issue.pep_url %}
+              <a href="{{ issue.pep_url }}" target="_blank" rel="noopener" class="pep-link">
+                📖 {{ issue.pep }}{% if issue.pep_section %} — {{ issue.pep_section }}{% endif %} ↗
+              </a>
+              {% endif %}
+
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+
+  {% else %}
+    <div class="tree-card">
+      <div class="empty-tree">
+        <div class="empty-icon">✅</div>
+        <div style="font-weight:700;font-size:1.05rem;margin-bottom:.3rem;">No Issues Found</div>
+        <div style="color:var(--muted);font-size:.88rem;">Your code passed all checks. Great work!</div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Code Preview -->
+  {% if highlighted_code %}
+  <div class="section-label mt-4">Code Preview</div>
+  <div class="code-card mb-4">
+    <div class="code-bar">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <span class="code-file-name">your_code.py</span>
+      <span style="margin-left:auto;color:var(--muted);font-size:.78rem;">{{ total_lines }} lines</span>
+    </div>
+    <style>{{ css_style|safe }}</style>
+    <div class="code-inner">{{ highlighted_code|safe }}</div>
+  </div>
+  {% endif %}
+
+  <!-- Back -->
+  <div class="text-center pb-5">
+    <a href="/" class="btn-back">← Review Another Snippet</a>
+  </div>
 
 </div>
 
-</body>
+<script>
+// Score ring animation
+(function() {
+  const pct = {{ score_pct|default(0) }};
+  const circ = 345;
+  const offset = circ - (circ * pct / 100);
+  const ring = document.getElementById('ringFill');
+  if (ring) {
+    setTimeout(() => { ring.style.strokeDashoffset = offset; }, 150);
+  }
+})();
 
+// Tree toggle
+function toggleCat(bodyId, chevId) {
+  const body = document.getElementById(bodyId);
+  const chev = document.getElementById(chevId);
+  if (!body) return;
+  body.classList.toggle('open');
+  if (chev) chev.classList.toggle('open');
+}
+
+// Bar chart animation (start from 0)
+document.querySelectorAll('.bar-fill').forEach(bar => {
+  const targetW = bar.getAttribute('data-w');
+  bar.style.width = '0%';
+  setTimeout(() => { bar.style.width = targetW + '%'; }, 300);
+});
+</script>
+</body>
 </html>

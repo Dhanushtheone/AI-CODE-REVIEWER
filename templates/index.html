@@ -1,144 +1,218 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PyLens — Python Code Reviewer</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #21263a;
+    --border: #2e3350;
+    --accent: #6c63ff;
+    --accent2: #48bb78;
+    --text: #e2e8f0;
+    --muted: #718096;
+    --red: #fc8181;
+    --yellow: #f6e05e;
+    --blue: #63b3ed;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
 
-    <meta charset="UTF-8">
+  .hero { background: linear-gradient(135deg, #0f1117 0%, #1a1040 50%, #0f1117 100%); padding: 3rem 0 2rem; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 50%, rgba(108,99,255,.15) 0%, transparent 60%), radial-gradient(ellipse at 70% 30%, rgba(72,187,120,.08) 0%, transparent 50%); }
+  .hero-title { font-size: 2.6rem; font-weight: 800; background: linear-gradient(135deg, #fff 0%, #a78bfa 60%, #6c63ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: .4rem; }
+  .hero-sub { color: var(--muted); font-size: 1.05rem; }
+  .pill { display: inline-block; padding: .25rem .75rem; border-radius: 999px; font-size: .78rem; font-weight: 600; letter-spacing: .04em; }
+  .pill-purple { background: rgba(108,99,255,.18); color: #a78bfa; border: 1px solid rgba(108,99,255,.3); }
+  .pill-green  { background: rgba(72,187,120,.15); color: #48bb78; border: 1px solid rgba(72,187,120,.25); }
+  .pill-blue   { background: rgba(99,179,237,.15); color: #63b3ed; border: 1px solid rgba(99,179,237,.25); }
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+  .main-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; }
 
-    <title>AI Code Reviewer</title>
+  /* Editor toolbar */
+  .editor-bar { background: var(--surface2); border-bottom: 1px solid var(--border); padding: .55rem 1rem; display: flex; align-items: center; gap: .6rem; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #fc8181; }
+  .dot-y { background: #f6e05e; }
+  .dot-g { background: #48bb78; }
+  .editor-label { color: var(--muted); font-size: .8rem; margin-left: auto; font-family: monospace; }
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+  /* Code textarea */
+  #codeInput {
+    width: 100%; background: #0d1117; color: #c9d1d9;
+    font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+    font-size: 14px; line-height: 1.7; border: none; outline: none;
+    padding: 1.2rem 1rem 1.2rem 1.2rem; resize: vertical; min-height: 320px;
+    tab-size: 4; border-radius: 0;
+  }
+  #codeInput::placeholder { color: #3d4451; }
 
-    <link rel="stylesheet"
-          href="{{ request.url_for('static', path='style.css') }}">
+  /* Line counter overlay */
+  .editor-wrap { position: relative; }
+  .line-count { position: absolute; top: 0; left: 0; padding: 1.2rem .5rem 1.2rem .6rem; color: #3d4451; font-family: monospace; font-size: 14px; line-height: 1.7; pointer-events: none; user-select: none; text-align: right; min-width: 38px; }
 
+  /* Feature pills row */
+  .features-row { display: flex; flex-wrap: wrap; gap: .5rem; padding: 1rem; background: var(--surface2); border-top: 1px solid var(--border); }
+
+  /* Divider */
+  .or-divider { display: flex; align-items: center; gap: 1rem; color: var(--muted); font-size: .9rem; padding: 0 1.2rem; }
+  .or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* File upload zone */
+  .upload-zone { margin: 0 1.2rem; border: 2px dashed var(--border); border-radius: 12px; padding: 1.5rem; text-align: center; cursor: pointer; transition: .2s; color: var(--muted); }
+  .upload-zone:hover { border-color: var(--accent); color: var(--text); background: rgba(108,99,255,.05); }
+  .upload-icon { font-size: 2rem; margin-bottom: .4rem; }
+  #fileInput { display: none; }
+
+  /* Submit */
+  .btn-analyze { background: linear-gradient(135deg, #6c63ff, #48bb78); border: none; border-radius: 12px; color: #fff; font-size: 1.05rem; font-weight: 700; padding: .85rem 2rem; width: 100%; transition: .2s; cursor: pointer; }
+  .btn-analyze:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 8px 30px rgba(108,99,255,.35); }
+  .btn-analyze:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+  /* How it works */
+  .step { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 1.2rem; text-align: center; }
+  .step-num { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #6c63ff, #48bb78); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .9rem; margin: 0 auto .75rem; }
+  .step-title { font-weight: 700; font-size: .95rem; margin-bottom: .3rem; }
+  .step-desc { color: var(--muted); font-size: .82rem; line-height: 1.5; }
+
+  /* Loading */
+  .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(10,10,18,.85); z-index: 9999; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; }
+  .loading-overlay.show { display: flex; }
+  .spinner-ring { width: 56px; height: 56px; border: 4px solid rgba(108,99,255,.2); border-top-color: #6c63ff; border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { color: #a78bfa; font-size: 1rem; font-weight: 600; }
+  .loading-sub { color: var(--muted); font-size: .85rem; }
+</style>
 </head>
-
 <body>
 
-<div class="container mt-5 mb-5">
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner-ring"></div>
+  <div class="loading-text">Analyzing your code...</div>
+  <div class="loading-sub">Running PEP 8 checks, detecting issues...</div>
+</div>
 
-    <div class="card shadow-lg p-4">
-
-        <h1 class="text-center mb-3">
-            🤖 AI Code Reviewer
-        </h1>
-
-        <p class="text-center text-muted">
-            Analyze Python code quality, detect issues,
-            view suggestions, and improve your coding standards.
-        </p>
-
-        <hr>
-
-        <div class="alert alert-info">
-
-            <strong>Supported Features</strong>
-
-            <ul class="mb-0 mt-2">
-
-                <li>Python Code Analysis</li>
-
-                <li>Pylint Quality Scoring</li>
-
-                <li>Issue Detection</li>
-
-                <li>Syntax Highlighting</li>
-
-                <li>AI Suggestions</li>
-
-                <li>File Upload Support (.py)</li>
-
-            </ul>
-
-        </div>
-
-        <form action="/review"
-              method="POST"
-              enctype="multipart/form-data"
-              id="reviewForm">
-
-            <label class="form-label fw-bold">
-                Paste Python Code
-            </label>
-
-            <textarea
-                class="form-control code-area"
-                name="code"
-                rows="15"
-                placeholder="Paste your Python code here..."></textarea>
-
-            <div class="text-center my-3">
-                <h5>OR</h5>
-            </div>
-
-            <label class="form-label fw-bold">
-                Upload Python File (.py)
-            </label>
-
-            <input
-                type="file"
-                name="codefile"
-                accept=".py"
-                class="form-control">
-
-            <div class="form-text">
-                Only Python (.py) files are supported.
-            </div>
-
-            <br>
-
-            <button
-                type="submit"
-                class="btn btn-primary btn-lg w-100"
-                id="submitBtn">
-
-                🔍 Analyze Code
-
-            </button>
-
-        </form>
-
-        <div id="loadingSection"
-             class="text-center mt-4"
-             style="display:none;">
-
-            <div class="spinner-border text-primary"
-                 role="status">
-            </div>
-
-            <p class="mt-3">
-                Reviewing your code...
-            </p>
-
-        </div>
-
+<!-- Hero -->
+<div class="hero">
+  <div class="container text-center position-relative">
+    <div class="mb-3 d-flex gap-2 justify-content-center flex-wrap">
+      <span class="pill pill-purple">PEP 8 Compliant</span>
+      <span class="pill pill-green">Beginner Friendly</span>
+      <span class="pill pill-blue">Visual Diagnostics</span>
     </div>
+    <div class="hero-title">PyLens Code Reviewer</div>
+    <div class="hero-sub">Paste any Python snippet — get instant visual diagnostics, PEP references, and plain-English fixes.</div>
+  </div>
+</div>
+
+<div class="container py-4" style="max-width:860px;">
+
+  <!-- Editor card -->
+  <form action="/review" method="POST" enctype="multipart/form-data" id="reviewForm">
+    <div class="main-card mb-4">
+
+      <!-- Toolbar -->
+      <div class="editor-bar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <span style="color:var(--muted);font-size:.85rem;margin-left:.5rem;">paste_your_code.py</span>
+        <span class="editor-label" id="lineCounter">0 lines</span>
+      </div>
+
+      <!-- Code area -->
+      <div class="editor-wrap">
+        <textarea
+          id="codeInput"
+          name="code"
+          spellcheck="false"
+          autocomplete="off"
+          placeholder="# Paste your Python code here...
+# Example:
+def greet(name):
+    print('Hello ' + name)
+
+greet('World')"
+        ></textarea>
+      </div>
+
+      <!-- Feature chips -->
+      <div class="features-row">
+        <span class="pill pill-purple">Pylint Analysis</span>
+        <span class="pill pill-green">PEP 8 + PEP 257</span>
+        <span class="pill pill-blue">Error Tree View</span>
+        <span class="pill pill-purple">Line References</span>
+        <span class="pill pill-green">Fix Suggestions</span>
+      </div>
+    </div>
+
+    <!-- OR divider -->
+    <div class="or-divider my-3">or upload a file</div>
+
+    <!-- File upload -->
+    <div class="upload-zone mb-4" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+      <div class="upload-icon">📂</div>
+      <div style="font-weight:600; margin-bottom:.2rem;" id="uploadLabel">Click to upload a .py file</div>
+      <div style="font-size:.82rem;">Only Python files are supported</div>
+      <input type="file" id="fileInput" name="codefile" accept=".py">
+    </div>
+
+    <!-- Submit -->
+    <button type="submit" class="btn-analyze" id="submitBtn">
+      🔍 &nbsp;Analyze Code
+    </button>
+  </form>
+
+  <!-- How it works -->
+  <div class="mt-5 mb-2" style="color:var(--muted);font-size:.82rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;">How it works</div>
+  <div class="row g-3 mb-5">
+    <div class="col-md-4"><div class="step"><div class="step-num">1</div><div class="step-title">Paste or Upload</div><div class="step-desc">Drop in any Python snippet or upload a .py file directly.</div></div></div>
+    <div class="col-md-4"><div class="step"><div class="step-num">2</div><div class="step-title">Deep Analysis</div><div class="step-desc">Pylint scans for errors, warnings, style issues, and code smells.</div></div></div>
+    <div class="col-md-4"><div class="step"><div class="step-num">3</div><div class="step-title">Visual Report</div><div class="step-desc">Get a tree-view breakdown with PEP references and plain-English fixes.</div></div></div>
+  </div>
 
 </div>
 
 <script>
+const ta = document.getElementById('codeInput');
+const counter = document.getElementById('lineCounter');
 
-document
-.getElementById("reviewForm")
-.addEventListener("submit", function() {
+function updateCounter() {
+  const lines = ta.value ? ta.value.split('\n').length : 0;
+  counter.textContent = lines + (lines === 1 ? ' line' : ' lines');
+}
+ta.addEventListener('input', updateCounter);
+updateCounter();
 
-    document
-    .getElementById("submitBtn")
-    .disabled = true;
-
-    document
-    .getElementById("loadingSection")
-    .style.display = "block";
-
+// Tab key inserts spaces
+ta.addEventListener('keydown', function(e) {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = this.selectionStart;
+    const end = this.selectionEnd;
+    this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
+    this.selectionStart = this.selectionEnd = start + 4;
+    updateCounter();
+  }
 });
 
+// File upload label
+document.getElementById('fileInput').addEventListener('change', function() {
+  const name = this.files[0] ? this.files[0].name : 'Click to upload a .py file';
+  document.getElementById('uploadLabel').textContent = name;
+});
+
+// Submit
+document.getElementById('reviewForm').addEventListener('submit', function() {
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('loadingOverlay').classList.add('show');
+});
 </script>
-
 </body>
-
 </html>
