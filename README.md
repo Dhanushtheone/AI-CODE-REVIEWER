@@ -24,13 +24,18 @@ AI Code Reviewer is a modern web application designed to help developers improve
 .
 ├── app.py                    # Main FastAPI application
 ├── config.py                 # Configuration (API keys, settings)
+├── lab_report.py             # College lab report PDF generation
+├── setup_matlab_engine.py    # One-time MATLAB engine build/install (optional)
+├── matlab_shims/
+│   └── waitfor.m             # Overrides waitfor() so scripts don't hang the server
 ├── pyproject.toml            # Project metadata and dependencies
 ├── README.md                 # This file
 ├── project.spec              # PyInstaller specification
 ├── reviews.txt               # Review records
 ├── test_groq.py              # Testing utilities
 ├── static/
-│   └── style.css             # Custom styling
+│   ├── style.css             # Custom styling
+│   └── vendor/codemirror/    # Self-hosted code editor (syntax highlighting, autocomplete)
 ├── templates/
 │   ├── index.html            # Home page with upload/paste interface
 │   └── result.html           # Results display page
@@ -73,10 +78,28 @@ AI Code Reviewer is a modern web application designed to help developers improve
    pip install -e .
    ```
    
-   Or using uv:
+   Or using uv (recommended — also installs the spaCy English model, declared
+   directly in `pyproject.toml` so it can't get silently dropped by a sync):
    ```bash
-   uv pip install -e .
+   uv sync
    ```
+
+4. **(Optional) Enable MATLAB support:**
+
+   MATLAB's Engine API for Python isn't a normal PyPI package — it ships bundled
+   inside your MATLAB installation and has to be built from there directly, so
+   `uv sync` can't install it on its own. If you have MATLAB installed (R2025b
+   was used to build/test this), run:
+   ```bash
+   uv run python setup_matlab_engine.py
+   ```
+   This is safe to skip — Python and NLP code are unaffected either way, and
+   MATLAB code will still run even without it (falling back to a fresh
+   `matlab -batch` process per request), just slower (~30-90s startup per run
+   instead of a warm, persistent session) and without plot image capture or
+   safe handling of `waitfor()`-style scripts. Re-run this script any time the
+   `.venv` is recreated, or after upgrading to a different MATLAB release (the
+   engine binary is version-locked to the MATLAB release it ships with).
 
 ## Running the Application
 

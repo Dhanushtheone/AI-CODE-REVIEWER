@@ -1,0 +1,32 @@
+[
+    {
+        "roll": "101",
+        "name": "Alice",
+        "age": "20",
+        "marks": "95"
+    },
+    {
+        "roll": "102",
+        "name": "Bob",
+        "age": "21",
+        "marks": "88"
+    },
+    {
+        "roll": "103",
+        "name": "Charlie",
+        "age": "19",
+        "marks": "91"
+    },
+    {
+        "roll": "104",
+        "name": "David",
+        "age": "22",
+        "marks": "85"
+    },
+    {
+        "roll": "105",
+        "name": "Emma",
+        "age": "20",
+        "marks": "98"
+    }
+]

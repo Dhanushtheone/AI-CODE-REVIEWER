@@ -370,3 +370,7 @@ pyrightconfig.json
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,python,flask,django
+
+# Generated report output
+reports/*.pdf
+nlp_wordcloud.png

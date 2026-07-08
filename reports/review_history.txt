@@ -257,3 +257,226 @@ Your code has been rated at 2.50/10 (previous run: 0.00/10, +2.50)
 
 
 
+
+============================================================
+2026-06-19 09:39:26.889092
+Score: 5.79/10 | Issues: 4
+************* Module workingwithpandas i)
+uploads\workingwithpandas i).py:41:0: C0305: Trailing newlines (trailing-newlines)
+uploads\workingwithpandas i).py:1:0: C0114: Missing module docstring (missing-module-docstring)
+uploads\workingwithpandas i).py:1:0: C0103: Module name "workingwithpandas i)" doesn't conform to snake_case naming style (invalid-name)
+uploads\workingwithpandas i).py:1:0: E0401: Unable to import 'pandas' (import-error)
+
+-----------------------------------
+Your code has been rated at 5.79/10
+
+
+
+
+============================================================
+2026-06-19 09:53:05.890062
+Score: 0.00/10 | Issues: 3
+************* Module sample
+uploads\sample.py:2:0: C0304: Final newline missing (missing-final-newline)
+uploads\sample.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+uploads\sample.py:1:0: C0103: Constant name "x" doesn't conform to UPPER_CASE naming style (invalid-name)
+
+------------------------------------------------------------------
+Your code has been rated at 0.00/10 (previous run: 2.50/10, -2.50)
+
+
+
+
+============================================================
+2026-06-19 09:54:12.932768
+Score: 0.0/10 | Issues: 0
+************* Module sample
+
+
+
+============================================================
+2026-06-19 10:21:35.006712
+Score: 0.00/10 | Issues: 4
+************* Module sample
+uploads\sample.py:3:0: C0304: Final newline missing (missing-final-newline)
+uploads\sample.py:3:0: W0311: Bad indentation. Found 1 spaces, expected 4 (bad-indentation)
+uploads\sample.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+uploads\sample.py:1:0: C0103: Constant name "a" doesn't conform to UPPER_CASE naming style (invalid-name)
+
+------------------------------------------------------------------
+Your code has been rated at 0.00/10 (previous run: 0.00/10, +0.00)
+
+
+
+
+============================================================
+2026-06-19 10:29:41.671583
+Score: 8.95/10 | Issues: 2
+************* Module sample
+uploads\sample.py:42:0: C0305: Trailing newlines (trailing-newlines)
+uploads\sample.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+
+------------------------------------------------------------------
+Your code has been rated at 8.95/10 (previous run: 0.00/10, +8.95)
+
+
+
+
+============================================================
+2026-06-19 10:51:31.296384
+Score: 3.39/10 | Issues: 23
+************* Module program_1
+uploads\program_1.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+uploads\program_1.py:2:0: E0401: Unable to import 'nltk' (import-error)
+uploads\program_1.py:4:0: E0401: Unable to import 'nltk.tokenize' (import-error)
+uploads\program_1.py:5:0: E0401: Unable to import 'nltk.corpus' (import-error)
+uploads\program_1.py:6:0: E0401: Unable to import 'nltk.stem' (import-error)
+uploads\program_1.py:16:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\program_1.py:16:18: W0621: Redefining name 'text' from outer scope (line 75) (redefined-outer-name)
+uploads\program_1.py:22:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\program_1.py:28:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\program_1.py:34:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\program_1.py:41:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\program_1.py:49:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\program_1.py:51:4: W0621: Redefining name 'stemmed_tokens' from outer scope (line 78) (redefined-outer-name)
+uploads\program_1.py:56:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\program_1.py:58:4: W0621: Redefining name 'lemmatized_tokens' from outer scope (line 78) (redefined-outer-name)
+uploads\program_1.py:63:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\program_1.py:63:18: W0621: Redefining name 'text' from outer scope (line 75) (redefined-outer-name)
+uploads\program_1.py:70:4: W0621: Redefining name 'stemmed_tokens' from outer scope (line 78) (redefined-outer-name)
+uploads\program_1.py:71:4: W0621: Redefining name 'lemmatized_tokens' from outer scope (line 78) (redefined-outer-name)
+uploads\program_1.py:69:4: W0612: Unused variable 'word_frequencies' (unused-variable)
+uploads\program_1.py:75:0: C0103: Constant name "text" doesn't conform to UPPER_CASE naming style (invalid-name)
+uploads\program_1.py:3:0: C0411: standard import "string" should be placed before third party import "nltk" (wrong-import-order)
+uploads\program_1.py:7:0: C0411: standard import "collections.Counter" should be placed before third party imports "nltk", "nltk.tokenize.word_tokenize", "nltk.corpus.stopwords", "nltk.stem.PorterStemmer" (wrong-import-order)
+
+-----------------------------------
+Your code has been rated at 3.39/10
+
+
+
+
+============================================================
+2026-06-19 11:23:54.534373
+Score: 7.86/10 | Issues: 6
+************* Module sample
+uploads\sample.py:26:0: C0301: Line too long (109/100) (line-too-long)
+uploads\sample.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+uploads\sample.py:1:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\sample.py:1:18: W0621: Redefining name 'coeffs' from outer scope (line 26) (redefined-outer-name)
+uploads\sample.py:10:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\sample.py:10:19: W0621: Redefining name 'coeffs' from outer scope (line 26) (redefined-outer-name)
+
+------------------------------------------------------------------
+Your code has been rated at 7.86/10 (previous run: 8.95/10, -1.09)
+
+
+
+
+============================================================
+2026-06-19 13:01:16.179168
+Score: 6.44/10 | Issues: 21
+************* Module sample
+uploads\sample.py:1:0: C0303: Trailing whitespace (trailing-whitespace)
+uploads\sample.py:2:0: C0303: Trailing whitespace (trailing-whitespace)
+uploads\sample.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+uploads\sample.py:18:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\sample.py:18:18: W0621: Redefining name 'text' from outer scope (line 77) (redefined-outer-name)
+uploads\sample.py:24:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\sample.py:30:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\sample.py:36:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\sample.py:43:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\sample.py:51:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\sample.py:53:4: W0621: Redefining name 'stemmed_tokens' from outer scope (line 80) (redefined-outer-name)
+uploads\sample.py:58:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\sample.py:60:4: W0621: Redefining name 'lemmatized_tokens' from outer scope (line 80) (redefined-outer-name)
+uploads\sample.py:65:0: C0116: Missing function or method docstring (missing-function-docstring)
+uploads\sample.py:65:18: W0621: Redefining name 'text' from outer scope (line 77) (redefined-outer-name)
+uploads\sample.py:72:4: W0621: Redefining name 'stemmed_tokens' from outer scope (line 80) (redefined-outer-name)
+uploads\sample.py:73:4: W0621: Redefining name 'lemmatized_tokens' from outer scope (line 80) (redefined-outer-name)
+uploads\sample.py:71:4: W0612: Unused variable 'word_frequencies' (unused-variable)
+uploads\sample.py:77:0: C0103: Constant name "text" doesn't conform to UPPER_CASE naming style (invalid-name)
+uploads\sample.py:5:0: C0411: standard import "string" should be placed before third party import "nltk" (wrong-import-order)
+uploads\sample.py:9:0: C0411: standard import "collections.Counter" should be placed before third party imports "nltk", "nltk.tokenize.word_tokenize", "nltk.corpus.stopwords", "nltk.stem.PorterStemmer" (wrong-import-order)
+
+------------------------------------------------------------------
+Your code has been rated at 6.44/10 (previous run: 7.86/10, -1.42)
+
+
+
+
+============================================================
+2026-06-19 13:14:29.838618
+Score: 0.00/10 | Issues: 26
+************* Module numpyarrays
+uploads\numpyarrays.py:1:18: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:2:35: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:3:43: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:4:54: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:5:49: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:6:49: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:7:39: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:8:15: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:9:66: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:10:24: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:11:60: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:12:47: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:13:58: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:14:43: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:15:64: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:16:42: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:17:75: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:18:35: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:19:30: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:20:36: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:21:51: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:22:39: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:23:43: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:24:55: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:25:43: C0303: Trailing whitespace (trailing-whitespace)
+uploads\numpyarrays.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+
+-----------------------------------
+Your code has been rated at 0.00/10
+
+
+
+
+============================================================
+2026-07-06 05:57:26.809409
+Score: 0.0/10 | Issues: 1
+************* Module sample
+uploads\sample.py:4:19: E0001: Parsing failed: 'invalid decimal literal (sample, line 4)' (syntax-error)
+
+
+
+============================================================
+2026-07-06 11:23:01.087971
+Score: 7.20/10 | Issues: 7
+************* Module sample
+uploads\sample.py:8:0: C0303: Trailing whitespace (trailing-whitespace)
+uploads\sample.py:10:0: C0301: Line too long (105/100) (line-too-long)
+uploads\sample.py:37:0: C0304: Final newline missing (missing-final-newline)
+uploads\sample.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+uploads\sample.py:35:7: W0718: Catching too general exception Exception (broad-exception-caught)
+uploads\sample.py:10:4: C0103: Constant name "sample_text" doesn't conform to UPPER_CASE naming style (invalid-name)
+uploads\sample.py:2:0: W0611: Unused import sys (unused-import)
+
+------------------------------------------------------------------
+Your code has been rated at 7.20/10 (previous run: 6.44/10, +0.76)
+
+
+
+
+============================================================
+2026-07-08 05:38:55.924975
+Score: 0.00/10 | Issues: 2
+************* Module sample
+uploads\sample.py:1:0: C0304: Final newline missing (missing-final-newline)
+uploads\sample.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+
+------------------------------------------------------------------
+Your code has been rated at 0.00/10 (previous run: 7.20/10, -7.20)
+
+
+

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="AI Code Reviewer review history — track Python code quality scores and issues over time.">
+<title>AI Code Reviewer — Review History</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
+{% if entry_count > 1 %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+{% endif %}
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #21263a;
+    --border: #2e3350;
+    --accent: #6c63ff;
+    --text: #e2e8f0;
+    --muted: #718096;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  .hero { background: linear-gradient(135deg, #0f1117 0%, #1a1040 50%, #0f1117 100%); padding: 2.5rem 0 2rem; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 50%, rgba(108,99,255,.15) 0%, transparent 60%); }
+  .hero-title { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #fff 0%, #a78bfa 60%, #6c63ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .hero-sub { color: var(--muted); font-size: .95rem; }
+
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.3rem 1.5rem; text-align: center; }
+  .stat-num  { font-size: 2.2rem; font-weight: 800; line-height: 1; }
+  .stat-lbl  { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin-top: .3rem; }
+
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.3rem; }
+  .chart-title { font-weight: 700; font-size: .9rem; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 1rem; }
+
+  .section-label { color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; margin-bottom: 1rem; }
+
+  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .hist-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  .hist-table th { background: var(--surface2); color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; padding: .7rem 1.2rem; text-align: left; border-bottom: 1px solid var(--border); font-weight: 600; }
+  .hist-table td { padding: .75rem 1.2rem; border-bottom: 1px solid rgba(255,255,255,.04); }
+  .hist-table tr:last-child td { border-bottom: none; }
+  .hist-table tr:hover td { background: rgba(255,255,255,.02); }
+
+  .score-badge { display: inline-block; padding: .2rem .65rem; border-radius: 999px; font-weight: 700; font-size: .82rem; }
+
+  .btn-back { display: inline-flex; align-items: center; gap: .5rem; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 12px; padding: .7rem 1.5rem; font-weight: 600; text-decoration: none; transition: .2s; }
+  .btn-back:hover { background: var(--surface2); color: var(--text); transform: translateY(-1px); }
+
+  .empty-state { text-align: center; padding: 4rem 1rem; color: var(--muted); }
+  .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="container position-relative" style="max-width:900px;">
+    <div class="hero-title">📊 Review History</div>
+    <div class="hero-sub mt-1">Track your code quality improvements over time.</div>
+  </div>
+</div>
+
+<div class="container py-4" style="max-width:900px;">
+
+  {% if entry_count == 0 %}
+  <div class="empty-state">
+    <div class="empty-icon">📭</div>
+    <div style="font-weight:700;font-size:1.1rem;margin-bottom:.5rem;">No Reviews Yet</div>
+    <div style="margin-bottom:1.5rem;">Run your first code review to start tracking history.</div>
+    <a href="/" class="btn-back">← Go Review Some Code</a>
+  </div>
+
+  {% else %}
+
+  <!-- Summary stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-num" style="color:#a78bfa;">{{ entry_count }}</div>
+        <div class="stat-lbl">Total Reviews</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-num" style="color:#48bb78;">{{ avg_score }}</div>
+        <div class="stat-lbl">Avg Score</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-num" style="color:#63b3ed;">{{ best_score }}</div>
+        <div class="stat-lbl">Best Score</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-num" style="color:#fc8181;">{{ total_issues }}</div>
+        <div class="stat-lbl">Total Issues Found</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Score trend chart -->
+  {% if entry_count > 1 %}
+  <div class="chart-card mb-4">
+    <div class="chart-title">Score Trend Over Time</div>
+    <canvas id="scoreChart" height="80"></canvas>
+  </div>
+  {% endif %}
+
+  <!-- Issues trend chart -->
+  {% if entry_count > 1 %}
+  <div class="chart-card mb-4">
+    <div class="chart-title">Issues Found Per Review</div>
+    <canvas id="issuesChart" height="60"></canvas>
+  </div>
+  {% endif %}
+
+  <!-- History table -->
+  <div class="section-label">All Reviews</div>
+  <div class="table-card mb-5">
+    <table class="hist-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Date &amp; Time</th>
+          <th>Score</th>
+          <th>Issues</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in entries|reverse %}
+        {% set idx = loop.index %}
+        <tr>
+          <td style="color:var(--muted);">{{ entry_count - idx + 1 }}</td>
+          <td style="font-family:monospace;font-size:.82rem;">{{ entry.date }}</td>
+          <td>
+            {% if entry.score >= 8 %}
+              <span class="score-badge" style="background:rgba(72,187,120,.15);color:#48bb78;">{{ entry.score }}</span>
+            {% elif entry.score >= 6 %}
+              <span class="score-badge" style="background:rgba(108,99,255,.15);color:#a78bfa;">{{ entry.score }}</span>
+            {% elif entry.score >= 4 %}
+              <span class="score-badge" style="background:rgba(245,158,11,.12);color:#fbbf24;">{{ entry.score }}</span>
+            {% else %}
+              <span class="score-badge" style="background:rgba(239,68,68,.12);color:#fc8181;">{{ entry.score }}</span>
+            {% endif %}
+          </td>
+          <td style="color:var(--muted);">{{ entry.issues }}</td>
+          <td style="font-size:.8rem;color:var(--muted);">
+            {% if entry.score >= 8 %}Excellent
+            {% elif entry.score >= 6 %}Good
+            {% elif entry.score >= 4 %}Needs Improvement
+            {% else %}Poor{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% endif %}
+
+  <div class="text-center pb-4">
+    <a href="/" class="btn-back">← Review Another Snippet</a>
+  </div>
+
+</div>
+
+{% if entry_count > 1 %}
+<!-- Data in JSON script elements — VS Code won't parse these as JavaScript -->
+<script type="application/json" id="chartDates">{{ dates_json|safe }}</script>
+<script type="application/json" id="chartScores">{{ scores_json|safe }}</script>
+<script type="application/json" id="chartIssues">{{ entries|map(attribute='issues')|list|tojson }}</script>
+<script>
+const DATES  = JSON.parse(document.getElementById('chartDates').textContent);
+const SCORES = JSON.parse(document.getElementById('chartScores').textContent);
+const ISSUES = JSON.parse(document.getElementById('chartIssues').textContent);
+
+const chartDefaults = {
+  responsive: true,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: '#1a1d27',
+      borderColor: '#2e3350',
+      borderWidth: 1,
+      titleColor: '#e2e8f0',
+      bodyColor: '#718096',
+    },
+  },
+  scales: {
+    x: {
+      ticks: { color: '#718096', font: { size: 11 } },
+      grid:  { color: 'rgba(255,255,255,.04)' },
+    },
+    y: {
+      ticks: { color: '#718096', font: { size: 11 } },
+      grid:  { color: 'rgba(255,255,255,.04)' },
+    },
+  },
+};
+
+// Score trend
+new Chart(document.getElementById('scoreChart'), {
+  type: 'line',
+  data: {
+    labels: DATES,
+    datasets: [{
+      data: SCORES,
+      borderColor: '#6c63ff',
+      backgroundColor: 'rgba(108,99,255,.12)',
+      borderWidth: 2,
+      pointBackgroundColor: '#6c63ff',
+      pointRadius: 4,
+      tension: 0.35,
+      fill: true,
+    }],
+  },
+  options: {
+    ...chartDefaults,
+    scales: {
+      ...chartDefaults.scales,
+      y: { ...chartDefaults.scales.y, min: 0, max: 10,
+           ticks: { ...chartDefaults.scales.y.ticks, stepSize: 2 } },
+    },
+  },
+});
+
+// Issues per review
+new Chart(document.getElementById('issuesChart'), {
+  type: 'bar',
+  data: {
+    labels: DATES,
+    datasets: [{
+      data: ISSUES,
+      backgroundColor: 'rgba(252,129,129,.6)',
+      borderColor: '#fc8181',
+      borderWidth: 1,
+      borderRadius: 4,
+    }],
+  },
+  options: {
+    ...chartDefaults,
+    scales: {
+      ...chartDefaults.scales,
+      y: { ...chartDefaults.scales.y, beginAtZero: true },
+    },
+  },
+});
+</script>
+{% endif %}
+</body>
+</html>

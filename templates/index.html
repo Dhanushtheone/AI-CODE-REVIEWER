@@ -3,22 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PyLens — Python Code Reviewer</title>
+<meta name="description" content="PyLens — AI-powered Python code reviewer with Pylint, DS/ML checks, security scan, live output, and AI auto-fix.">
+<title>AI Code Reviewer</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
+<link rel="stylesheet" href="{{ request.url_for('static', path='vendor/codemirror/lib/codemirror.css') }}">
+<link rel="stylesheet" href="{{ request.url_for('static', path='vendor/codemirror/addon/hint/show-hint.css') }}">
 <style>
   :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface2: #21263a;
-    --border: #2e3350;
-    --accent: #6c63ff;
-    --accent2: #48bb78;
-    --text: #e2e8f0;
-    --muted: #718096;
-    --red: #fc8181;
-    --yellow: #f6e05e;
-    --blue: #63b3ed;
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #21263a;
+    --border: #2e3350; --accent: #6c63ff; --text: #e2e8f0; --muted: #718096;
   }
   * { box-sizing: border-box; }
   body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
@@ -27,66 +21,108 @@
   .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 50%, rgba(108,99,255,.15) 0%, transparent 60%), radial-gradient(ellipse at 70% 30%, rgba(72,187,120,.08) 0%, transparent 50%); }
   .hero-title { font-size: 2.6rem; font-weight: 800; background: linear-gradient(135deg, #fff 0%, #a78bfa 60%, #6c63ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: .4rem; }
   .hero-sub { color: var(--muted); font-size: 1.05rem; }
+
   .pill { display: inline-block; padding: .25rem .75rem; border-radius: 999px; font-size: .78rem; font-weight: 600; letter-spacing: .04em; }
   .pill-purple { background: rgba(108,99,255,.18); color: #a78bfa; border: 1px solid rgba(108,99,255,.3); }
-  .pill-green  { background: rgba(72,187,120,.15); color: #48bb78; border: 1px solid rgba(72,187,120,.25); }
-  .pill-blue   { background: rgba(99,179,237,.15); color: #63b3ed; border: 1px solid rgba(99,179,237,.25); }
+  .pill-green  { background: rgba(72,187,120,.15);  color: #48bb78; border: 1px solid rgba(72,187,120,.25); }
+  .pill-blue   { background: rgba(99,179,237,.15);  color: #63b3ed; border: 1px solid rgba(99,179,237,.25); }
+  .pill-orange { background: rgba(249,115,22,.15);  color: #fb923c; border: 1px solid rgba(249,115,22,.25); }
+  .pill-pink   { background: rgba(236,72,153,.15);  color: #f472b6; border: 1px solid rgba(236,72,153,.25); }
+  .pill-red    { background: rgba(220,38,38,.15);   color: #f87171; border: 1px solid rgba(220,38,38,.25); }
 
   .main-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; }
 
-  /* Editor toolbar */
   .editor-bar { background: var(--surface2); border-bottom: 1px solid var(--border); padding: .55rem 1rem; display: flex; align-items: center; gap: .6rem; }
   .dot { width: 12px; height: 12px; border-radius: 50%; }
-  .dot-r { background: #fc8181; }
-  .dot-y { background: #f6e05e; }
-  .dot-g { background: #48bb78; }
+  .dot-r { background: #fc8181; } .dot-y { background: #f6e05e; } .dot-g { background: #48bb78; }
   .editor-label { color: var(--muted); font-size: .8rem; margin-left: auto; font-family: monospace; }
 
-  /* Code textarea */
-  #codeInput {
-    width: 100%; background: #0d1117; color: #c9d1d9;
+  /* CodeMirror editor — themed to match the app's existing dark palette */
+  .CodeMirror {
+    background: #0d1117; color: #c9d1d9;
     font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
-    font-size: 14px; line-height: 1.7; border: none; outline: none;
-    padding: 1.2rem 1rem 1.2rem 1.2rem; resize: vertical; min-height: 320px;
-    tab-size: 4; border-radius: 0;
+    font-size: 14px; line-height: 1.7;
+    min-height: 320px; height: auto;
   }
-  #codeInput::placeholder { color: #3d4451; }
+  .CodeMirror-lines { padding: 1.2rem 0; }
+  .CodeMirror pre.CodeMirror-line, .CodeMirror pre.CodeMirror-line-like { padding: 0 1.2rem; }
+  .CodeMirror-gutters { background: #0d1117; border-right: 1px solid var(--border); }
+  .CodeMirror-linenumber { color: #3d4451; padding: 0 .6rem 0 0; }
+  .CodeMirror-cursor { border-left: 1px solid #c9d1d9; }
+  .CodeMirror-activeline-background { background: rgba(108,99,255,.07); }
+  .CodeMirror-matchingbracket { color: #a78bfa !important; font-weight: 700; background: rgba(108,99,255,.15); }
+  .CodeMirror-selected { background: rgba(108,99,255,.25) !important; }
+  .cm-s-default .cm-keyword   { color: #a78bfa; font-weight: 600; }
+  .cm-s-default .cm-def       { color: #63b3ed; }
+  .cm-s-default .cm-variable, .cm-s-default .cm-variable-2, .cm-s-default .cm-variable-3 { color: #c9d1d9; }
+  .cm-s-default .cm-string, .cm-s-default .cm-string-2 { color: #48bb78; }
+  .cm-s-default .cm-comment  { color: #718096; font-style: italic; }
+  .cm-s-default .cm-number   { color: #fb923c; }
+  .cm-s-default .cm-operator { color: #f472b6; }
+  .cm-s-default .cm-builtin, .cm-s-default .cm-property { color: #63b3ed; }
+  .cm-s-default .cm-atom     { color: #fb923c; }
+  .CodeMirror-placeholder { color: #3d4451 !important; }
+  .CodeMirror-hints { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: 'Cascadia Code','Fira Code',Consolas,monospace; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+  .CodeMirror-hint { color: var(--text); }
+  li.CodeMirror-hint-active { background: var(--accent); color: #fff; }
 
-  /* Line counter overlay */
-  .editor-wrap { position: relative; }
-  .line-count { position: absolute; top: 0; left: 0; padding: 1.2rem .5rem 1.2rem .6rem; color: #3d4451; font-family: monospace; font-size: 14px; line-height: 1.7; pointer-events: none; user-select: none; text-align: right; min-width: 38px; }
-
-  /* Feature pills row */
   .features-row { display: flex; flex-wrap: wrap; gap: .5rem; padding: 1rem; background: var(--surface2); border-top: 1px solid var(--border); }
 
-  /* Divider */
-  .or-divider { display: flex; align-items: center; gap: 1rem; color: var(--muted); font-size: .9rem; padding: 0 1.2rem; }
+  /* Live output panel */
+  .output-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; display: none; }
+  .output-panel.visible { display: block; }
+  .output-bar { background: var(--surface2); border-bottom: 1px solid var(--border); padding: .5rem 1rem; display: flex; align-items: center; gap: .6rem; }
+  .output-label { font-size: .82rem; color: var(--muted); font-family: monospace; }
+  .output-status { margin-left: auto; font-size: .75rem; display: flex; align-items: center; gap: .4rem; }
+  .run-dot { width: 8px; height: 8px; border-radius: 50%; background: #48bb78; flex-shrink: 0; }
+  .run-dot.running { background: #f6e05e; animation: blink .7s infinite; }
+  .run-dot.error   { background: #fc8181; }
+  .run-btn { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: .25rem .7rem; font-size: .74rem; font-weight: 600; cursor: pointer; }
+  .run-btn:hover { opacity: .88; }
+  .run-btn:disabled { opacity: .5; cursor: not-allowed; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+  .output-body { padding: .9rem 1rem; font-family: 'Cascadia Code','Fira Code',Consolas,monospace; font-size: 13px; line-height: 1.7; min-height: 56px; max-height: 240px; overflow-y: auto; background: #0d1117; }
+  .out-stdout { color: #c9d1d9; white-space: pre-wrap; word-break: break-word; }
+  .out-stderr { color: #fc8181; white-space: pre-wrap; word-break: break-word; }
+  .out-empty  { color: #3d4451; }
+  .exec-meta  { font-size: .72rem; color: var(--muted); padding: .3rem 1rem; border-top: 1px solid var(--border); background: var(--surface2); }
+
+  /* stdin input area */
+  .stdin-panel { background: var(--surface2); border-top: 1px solid var(--border); padding: .6rem 1rem; display: none; }
+  .stdin-panel.visible { display: block; }
+  .stdin-panel.needs-attention { box-shadow: inset 0 0 0 2px #f6e05e; animation: stdin-pulse 1.4s ease-in-out 2; }
+  @keyframes stdin-pulse { 0%, 100% { box-shadow: inset 0 0 0 2px #f6e05e; } 50% { box-shadow: inset 0 0 0 2px transparent; } }
+  .stdin-label { font-size: .75rem; color: #f6e05e; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .35rem; display: flex; align-items: center; gap: .4rem; }
+  .stdin-box { width: 100%; background: #0d1117; color: #c9d1d9; border: 1px solid var(--border); border-radius: 8px; padding: .5rem .75rem; font-family: 'Cascadia Code','Fira Code',Consolas,monospace; font-size: 13px; line-height: 1.6; resize: vertical; min-height: 52px; outline: none; }
+  .stdin-box:focus { border-color: #f6e05e55; }
+  .stdin-hint { font-size: .72rem; color: var(--muted); margin-top: .3rem; }
+
+  .or-divider { display: flex; align-items: center; gap: 1rem; color: var(--muted); font-size: .9rem; padding: 0 .2rem; }
   .or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-  /* File upload zone */
-  .upload-zone { margin: 0 1.2rem; border: 2px dashed var(--border); border-radius: 12px; padding: 1.5rem; text-align: center; cursor: pointer; transition: .2s; color: var(--muted); }
+  .upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 1.5rem; text-align: center; cursor: pointer; transition: .2s; color: var(--muted); }
   .upload-zone:hover { border-color: var(--accent); color: var(--text); background: rgba(108,99,255,.05); }
   .upload-icon { font-size: 2rem; margin-bottom: .4rem; }
   #fileInput { display: none; }
 
-  /* Submit */
   .btn-analyze { background: linear-gradient(135deg, #6c63ff, #48bb78); border: none; border-radius: 12px; color: #fff; font-size: 1.05rem; font-weight: 700; padding: .85rem 2rem; width: 100%; transition: .2s; cursor: pointer; }
   .btn-analyze:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 8px 30px rgba(108,99,255,.35); }
   .btn-analyze:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
-  /* How it works */
   .step { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 1.2rem; text-align: center; }
   .step-num { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #6c63ff, #48bb78); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .9rem; margin: 0 auto .75rem; }
   .step-title { font-weight: 700; font-size: .95rem; margin-bottom: .3rem; }
   .step-desc { color: var(--muted); font-size: .82rem; line-height: 1.5; }
 
-  /* Loading */
   .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(10,10,18,.85); z-index: 9999; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; }
   .loading-overlay.show { display: flex; }
   .spinner-ring { width: 56px; height: 56px; border: 4px solid rgba(108,99,255,.2); border-top-color: #6c63ff; border-radius: 50%; animation: spin .8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .loading-text { color: #a78bfa; font-size: 1rem; font-weight: 600; }
   .loading-sub { color: var(--muted); font-size: .85rem; }
+
+  .history-link { display: inline-flex; align-items: center; gap: .4rem; color: var(--muted); font-size: .82rem; text-decoration: none; padding: .3rem .7rem; border: 1px solid var(--border); border-radius: 8px; transition: .2s; }
+  .history-link:hover { color: var(--text); border-color: #a78bfa; }
 </style>
 </head>
 <body>
@@ -95,7 +131,7 @@
 <div class="loading-overlay" id="loadingOverlay">
   <div class="spinner-ring"></div>
   <div class="loading-text">Analyzing your code...</div>
-  <div class="loading-sub">Running PEP 8 checks, detecting issues...</div>
+  <div class="loading-sub">Running Pylint, DS checks, security scan + AI review...</div>
 </div>
 
 <!-- Hero -->
@@ -105,32 +141,41 @@
       <span class="pill pill-purple">PEP 8 Compliant</span>
       <span class="pill pill-green">Beginner Friendly</span>
       <span class="pill pill-blue">Visual Diagnostics</span>
+      <span class="pill pill-orange">DS Anti-patterns</span>
+      <span class="pill pill-red">Security Scan</span>
+      <span class="pill pill-pink">ML Smells</span>
     </div>
-    <div class="hero-title">PyLens Code Reviewer</div>
-    <div class="hero-sub">Paste any Python snippet — get instant visual diagnostics, PEP references, and plain-English fixes.</div>
+    <div class="hero-title">AI Code Reviewer</div>
+    <div class="hero-sub">Paste Python or upload a .py / .ipynb file — get instant diagnostics, DS/ML checks, security scan, live output, and AI-powered fixes.</div>
   </div>
 </div>
 
 <div class="container py-4" style="max-width:860px;">
 
-  <!-- Editor card -->
-  <form action="/review" method="POST" enctype="multipart/form-data" id="reviewForm">
-    <div class="main-card mb-4">
+  <div class="d-flex justify-content-end mb-2">
+    <a href="/history" class="history-link">📊 Review History</a>
+  </div>
 
-      <!-- Toolbar -->
+  <!-- Single form — plain divs inside don't affect submission -->
+  <form action="/review" method="POST" enctype="multipart/form-data" id="reviewForm">
+
+    <!-- Editor card -->
+    <div class="main-card mb-3">
       <div class="editor-bar">
         <div class="dot dot-r"></div>
         <div class="dot dot-y"></div>
         <div class="dot dot-g"></div>
         <span style="color:var(--muted);font-size:.85rem;margin-left:.5rem;">paste_your_code.py</span>
+        <span style="color:#3d4451;font-size:.72rem;margin-left:.5rem;">Tab=indent &nbsp;·&nbsp; Shift+Tab=dedent &nbsp;·&nbsp; Alt+]=indent block &nbsp;·&nbsp; Alt+[=dedent block &nbsp;·&nbsp; Enter=auto-indent</span>
+        <button type="button" id="untabifyBtn" title="Convert tabs → 4 spaces (Format > Untabify)"
+          style="margin-left:auto;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);color:#a78bfa;border-radius:6px;font-size:.72rem;padding:.15rem .55rem;cursor:pointer;">⇥ Untabify</button>
         <span class="editor-label" id="lineCounter">0 lines</span>
       </div>
-
-      <!-- Code area -->
-      <div class="editor-wrap">
+      <div>
         <textarea
           id="codeInput"
           name="code"
+          aria-label="Python code editor"
           spellcheck="false"
           autocomplete="off"
           placeholder="# Paste your Python code here...
@@ -141,78 +186,434 @@ def greet(name):
 greet('World')"
         ></textarea>
       </div>
-
-      <!-- Feature chips -->
       <div class="features-row">
         <span class="pill pill-purple">Pylint Analysis</span>
         <span class="pill pill-green">PEP 8 + PEP 257</span>
         <span class="pill pill-blue">Error Tree View</span>
-        <span class="pill pill-purple">Line References</span>
-        <span class="pill pill-green">Fix Suggestions</span>
+        <span class="pill pill-orange">DS Anti-patterns</span>
+        <span class="pill pill-pink">ML Code Smells</span>
+        <span class="pill pill-red">Security Scan</span>
+        <span class="pill pill-purple">AI Auto-Fix</span>
+        <span class="pill pill-green">Docstring Generator</span>
+      </div>
+    </div>
+
+    <!-- Live output panel — sits inside form but has no named inputs -->
+    <div class="output-panel mb-3" id="outputPanel">
+      <div class="output-bar">
+        <span style="font-size:.85rem;color:var(--muted);">▶</span>
+        <span class="output-label">Live Output</span>
+        <span class="pill pill-blue" id="langBadge" style="display:none;padding:.15rem .55rem;font-size:.68rem;"></span>
+        <button type="button" id="runBtn" class="run-btn">▶ Run</button>
+        <div class="output-status">
+          <div class="run-dot" id="runDot"></div>
+          <span id="runStatus" style="color:var(--muted);">idle</span>
+        </div>
+      </div>
+
+      <!-- stdin box — shown only when code has input() -->
+      <div class="stdin-panel" id="stdinPanel">
+        <div class="stdin-label">⌨️ Program Input (stdin)</div>
+        <textarea id="stdinBox" class="stdin-box" aria-label="Program standard input (stdin)" placeholder="Type program input here (one value per line)..."></textarea>
+        <div class="stdin-hint">Your code uses input() — enter values here, then pause typing to run.</div>
+      </div>
+
+      <div class="output-body" id="outputBody">
+        <span class="out-empty">Output will appear here as you type...</span>
+      </div>
+      <div class="exec-meta" id="execMeta" style="display:none;align-items:center;">
+        <span id="execMetaText"></span>
+        <button type="button" id="labReportBtn" class="run-btn" style="margin-left:auto;display:none;">📄 Download Lab Report</button>
       </div>
     </div>
 
     <!-- OR divider -->
     <div class="or-divider my-3">or upload a file</div>
 
-    <!-- File upload -->
-    <div class="upload-zone mb-4" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+    <!-- File upload — <label for="fileInput"> makes the whole zone a native click target -->
+    <label class="upload-zone mb-4 d-block" id="uploadZone" for="fileInput">
       <div class="upload-icon">📂</div>
-      <div style="font-weight:600; margin-bottom:.2rem;" id="uploadLabel">Click to upload a .py file</div>
-      <div style="font-size:.82rem;">Only Python files are supported</div>
-      <input type="file" id="fileInput" name="codefile" accept=".py">
-    </div>
+      <div style="font-weight:600;margin-bottom:.2rem;" id="uploadLabel">Click to upload a .py or .ipynb file</div>
+      <div style="font-size:.82rem;">Python scripts and Jupyter Notebooks are supported</div>
+      <input type="file" id="fileInput" name="codefile" accept=".py,.ipynb">
+    </label>
 
     <!-- Submit -->
     <button type="submit" class="btn-analyze" id="submitBtn">
       🔍 &nbsp;Analyze Code
     </button>
+
   </form>
 
   <!-- How it works -->
   <div class="mt-5 mb-2" style="color:var(--muted);font-size:.82rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;">How it works</div>
   <div class="row g-3 mb-5">
-    <div class="col-md-4"><div class="step"><div class="step-num">1</div><div class="step-title">Paste or Upload</div><div class="step-desc">Drop in any Python snippet or upload a .py file directly.</div></div></div>
-    <div class="col-md-4"><div class="step"><div class="step-num">2</div><div class="step-title">Deep Analysis</div><div class="step-desc">Pylint scans for errors, warnings, style issues, and code smells.</div></div></div>
-    <div class="col-md-4"><div class="step"><div class="step-num">3</div><div class="step-title">Visual Report</div><div class="step-desc">Get a tree-view breakdown with PEP references and plain-English fixes.</div></div></div>
+    <div class="col-md-4"><div class="step"><div class="step-num">1</div><div class="step-title">Paste or Upload</div><div class="step-desc">Drop in any Python snippet, .py file, or Jupyter Notebook (.ipynb).</div></div></div>
+    <div class="col-md-4"><div class="step"><div class="step-num">2</div><div class="step-title">Deep Analysis</div><div class="step-desc">Pylint, DS anti-patterns, ML smells, and security checks run in one pass.</div></div></div>
+    <div class="col-md-4"><div class="step"><div class="step-num">3</div><div class="step-title">AI-Powered Report</div><div class="step-desc">Get a tree-view report, plain-English summary, and one-click AI auto-fix.</div></div></div>
   </div>
 
 </div>
 
+<script src="{{ request.url_for('static', path='vendor/codemirror/lib/codemirror.js') }}"></script>
+<script src="{{ request.url_for('static', path='vendor/codemirror/mode/python/python.js') }}"></script>
+<script src="{{ request.url_for('static', path='vendor/codemirror/mode/octave/octave.js') }}"></script>
+<script src="{{ request.url_for('static', path='vendor/codemirror/addon/edit/matchbrackets.js') }}"></script>
+<script src="{{ request.url_for('static', path='vendor/codemirror/addon/edit/closebrackets.js') }}"></script>
+<script src="{{ request.url_for('static', path='vendor/codemirror/addon/selection/active-line.js') }}"></script>
+<script src="{{ request.url_for('static', path='vendor/codemirror/addon/display/placeholder.js') }}"></script>
+<script src="{{ request.url_for('static', path='vendor/codemirror/addon/hint/show-hint.js') }}"></script>
+<script src="{{ request.url_for('static', path='vendor/codemirror/addon/hint/anyword-hint.js') }}"></script>
 <script>
-const ta = document.getElementById('codeInput');
+const taEl    = document.getElementById('codeInput');
 const counter = document.getElementById('lineCounter');
+const INDENT  = '    ';  // 4 spaces — used throughout the editor
 
+// Real syntax highlighting / auto-indent / autocomplete via CodeMirror, wrapping
+// the original <textarea> so the existing plain-form POST to /review (which
+// reads the textarea's raw value on submit) keeps working unmodified —
+// fromTextArea keeps the hidden textarea in sync automatically on submit.
+const cm = CodeMirror.fromTextArea(taEl, {
+  mode: 'python',
+  theme: 'default',
+  lineNumbers: true,
+  indentUnit: 4,
+  tabSize: 4,
+  indentWithTabs: false,
+  smartIndent: true,
+  lineWrapping: true,
+  matchBrackets: true,
+  autoCloseBrackets: true,
+  styleActiveLine: true,
+  placeholder: "# Paste your Python code here...\n# Example:\ndef greet(name):\n    print('Hello ' + name)\n\ngreet('World')",
+  extraKeys: {
+    'Tab': cm => cm.somethingSelected() ? cm.execCommand('indentMore') : cm.replaceSelection(INDENT, 'end'),
+    'Shift-Tab': 'indentLess',
+    'Alt-]': 'indentMore',
+    'Alt-[': 'indentLess',
+    'Ctrl-Space': 'autocomplete',
+  },
+});
+
+// ── Autocomplete: Python/MATLAB keywords + whatever identifiers are already
+// typed in the buffer (anyword-hint) — no language server, but relevant and
+// dependency-free for the two languages this editor targets. ────────────────
+const HINT_KEYWORDS = [
+  'def', 'class', 'import', 'from', 'return', 'if', 'elif', 'else', 'for', 'while',
+  'try', 'except', 'finally', 'with', 'as', 'in', 'is', 'not', 'and', 'or', 'lambda',
+  'print', 'len', 'range', 'True', 'False', 'None', 'self',
+  'function', 'endfunction', 'end', 'disp', 'fprintf', 'figure', 'plot', 'meshgrid',
+];
+CodeMirror.registerHelper('hint', 'pylens', (cmInstance) => {
+  const wordHints = CodeMirror.hint.anyword(cmInstance) || { list: [] };
+  const cur = cmInstance.getCursor();
+  const token = cmInstance.getTokenAt(cur);
+  const start = token.string.match(/^\w*/)[0] ? token.start : cur.ch;
+  const prefix = cmInstance.getRange({ line: cur.line, ch: start }, cur);
+  const kwMatches = prefix ? HINT_KEYWORDS.filter(k => k.startsWith(prefix) && k !== prefix) : [];
+  const list = [...new Set([...kwMatches, ...wordHints.list])];
+  return { list, from: CodeMirror.Pos(cur.line, start), to: cur };
+});
+cm.setOption('hintOptions', { hint: CodeMirror.hint.pylens });
+
+// ── Line counter ──────────────────────────────────────────────────────────────
 function updateCounter() {
-  const lines = ta.value ? ta.value.split('\n').length : 0;
-  counter.textContent = lines + (lines === 1 ? ' line' : ' lines');
+  const n = cm.lineCount();
+  counter.textContent = n + (n === 1 ? ' line' : ' lines');
 }
-ta.addEventListener('input', updateCounter);
+cm.on('change', updateCounter);
 updateCounter();
 
-// Tab key inserts spaces
-ta.addEventListener('keydown', function(e) {
-  if (e.key === 'Tab') {
-    e.preventDefault();
-    const start = this.selectionStart;
-    const end = this.selectionEnd;
-    this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
-    this.selectionStart = this.selectionEnd = start + 4;
-    updateCounter();
+// ── Untabify button — convert all tabs to 4 spaces ───────────────────────────
+document.getElementById('untabifyBtn').addEventListener('click', function() {
+  cm.setValue(cm.getValue().replace(/\t/g, INDENT));
+});
+
+// ── Live output DOM refs — declared here so keydown handler can reference them ─
+const panel      = document.getElementById('outputPanel');
+const outputBody = document.getElementById('outputBody');
+const dot        = document.getElementById('runDot');
+const runStatus  = document.getElementById('runStatus');
+const execMeta   = document.getElementById('execMeta');
+const execMetaText = document.getElementById('execMetaText');
+const langBadge  = document.getElementById('langBadge');
+const stdinPanel = document.getElementById('stdinPanel');
+const stdinBox   = document.getElementById('stdinBox');
+const runBtn     = document.getElementById('runBtn');
+const labReportBtn = document.getElementById('labReportBtn');
+let   timer      = null;
+let   runSeq     = 0; // guards against a slow (e.g. MATLAB) response landing after a newer run
+let   lastRun    = null; // {code, output, error, language} from the most recent completed run
+
+// Cheap client-side guess so we don't silently auto-fire slow MATLAB runs
+// on every typing pause — mirrors the server's heuristic closely enough.
+function looksLikeMatlab(code) {
+  let matlabScore = 0, pythonScore = 0;
+  for (const raw of code.split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (line.startsWith('%')) matlabScore++;
+    else if (line.startsWith('#')) pythonScore++;
+    if (/^(function|endfunction|endif|endfor|endwhile|elseif)\b/.test(line)) matlabScore += 2;
+    if (/;\s*(%.*)?$/.test(line)) matlabScore++;
+    if (/^(def |import |from |class |print\()/.test(line)) pythonScore += 2;
   }
-});
+  return matlabScore > pythonScore;
+}
 
-// File upload label
+// Cheap "is this mid-paste/mid-edit" detector — catches unbalanced brackets/quotes
+// and an unclosed Python try block, so we don't auto-run (and show a scary
+// traceback for) code the user hasn't finished typing yet. Applies before any
+// language-specific branching, so it covers Python, NLP, and MATLAB alike.
+function looksIncomplete(code) {
+  const brackets = { '(': ')', '[': ']', '{': '}' };
+  const closers = new Set(Object.values(brackets));
+  const stack = [];
+  let quote = null; // active string delimiter, or null
+
+  for (let i = 0; i < code.length; i++) {
+    const ch = code[i];
+    if (quote) {
+      if (ch === '\\') { i++; continue; } // skip escaped char
+      if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === '#' || ch === '%') {
+      const nl = code.indexOf('\n', i);
+      i = nl === -1 ? code.length : nl; // skip to end of line comment
+      continue;
+    }
+    if (ch === '"' || ch === "'") { quote = ch; continue; }
+    if (brackets[ch]) stack.push(brackets[ch]);
+    else if (closers.has(ch)) {
+      if (stack.length && stack[stack.length - 1] === ch) stack.pop();
+    }
+  }
+  if (quote || stack.length) return true;
+
+  // Unclosed Python try: block (the case that prompted this check).
+  const tryCount = (code.match(/\btry\s*:/g) || []).length;
+  const catchCount = (code.match(/\b(except\b[^:]*:|finally\s*:)/g) || []).length;
+  if (tryCount > catchCount) return true;
+
+  return false;
+}
+
+// ── File upload label ─────────────────────────────────────────────────────────
 document.getElementById('fileInput').addEventListener('change', function() {
-  const name = this.files[0] ? this.files[0].name : 'Click to upload a .py file';
-  document.getElementById('uploadLabel').textContent = name;
+  document.getElementById('uploadLabel').textContent =
+    this.files[0] ? this.files[0].name : 'Click to upload a .py or .ipynb file';
 });
 
-// Submit
+// ── Form submit (show loading overlay) ───────────────────────────────────────
 document.getElementById('reviewForm').addEventListener('submit', function() {
   document.getElementById('submitBtn').disabled = true;
   document.getElementById('loadingOverlay').classList.add('show');
 });
+
+// ── Live output — debounced ───────────────────────────────────────────────────
+function hasInputCall(code) {
+  return /\binput\s*\(/.test(code);
+}
+
+function setDot(state, label) {
+  dot.className = 'run-dot' + (state ? ' ' + state : '');
+  runStatus.textContent = label;
+}
+
+function renderOutput(data, myRun, code) {
+  // A newer run has already started (or finished) — this response is stale, drop it.
+  if (myRun !== runSeq) return;
+
+  const hasOut      = data.output && data.output.trim();
+  const realError   = data.returncode !== 0 && data.error && data.error.trim();
+  const noisyStderr = data.error && /\[nltk_data\]|UserWarning|DeprecationWarning|FutureWarning/.test(data.error);
+  const showStderr  = realError && !noisyStderr;
+  const hasImage    = Boolean(data.image_base64);
+
+  if (!hasOut && !realError && !hasImage) {
+    outputBody.innerHTML = '<span class="out-empty">(no output produced)</span>';
+  } else {
+    outputBody.innerHTML =
+      (hasOut     ? `<div class="out-stdout">${escHtml(data.output)}</div>` : '') +
+      (showStderr ? `<div class="out-stderr">${escHtml(data.error)}</div>`  : '') +
+      (hasImage   ? `<img src="data:image/png;base64,${data.image_base64}" alt="Plot output" style="max-width:100%;border-radius:6px;margin-top:.6rem;">` : '');
+  }
+
+  if (data.exec_time !== undefined) {
+    execMetaText.textContent = `Ran in ${data.exec_time}s`;
+    execMeta.style.display = 'flex';
+  }
+
+  if (data.language) {
+    langBadge.textContent = data.language;
+    langBadge.style.display = '';
+  } else {
+    langBadge.style.display = 'none';
+  }
+
+  if (data.needs_more_stdin) {
+    // input() ran out of values — surface the stdin box instead of leaving the
+    // user to hunt for why a raw EOFError showed up in the output.
+    stdinPanel.classList.add('visible', 'needs-attention');
+    stdinBox.focus();
+  } else {
+    stdinPanel.classList.remove('needs-attention');
+  }
+
+  // Only offer a lab report once a run actually produced something to report on.
+  if (data.language && (hasOut || realError || hasImage)) {
+    lastRun = {
+      code, output: data.output || '', error: data.error || '',
+      language: data.language, image_base64: data.image_base64 || null,
+    };
+    labReportBtn.style.display = '';
+  } else {
+    lastRun = null;
+    labReportBtn.style.display = 'none';
+  }
+
+  setDot(realError ? 'error' : '', realError ? 'error' : 'done');
+}
+
+function runCode() {
+  const code = cm.getValue().trim();
+  if (!code) { panel.classList.remove('visible'); return; }
+
+  // Every call starts a fresh "run generation" — any response tagged with an
+  // older generation number gets ignored by renderOutput, no matter which of
+  // Python / NLP / MATLAB it belongs to or how long it takes to come back.
+  const myRun = ++runSeq;
+
+  panel.classList.add('visible');
+
+  // Show/hide stdin box based on input() usage
+  if (hasInputCall(code)) {
+    stdinPanel.classList.add('visible');
+  } else {
+    stdinPanel.classList.remove('visible');
+  }
+
+  setDot('running', 'running...');
+  outputBody.innerHTML = '<span class="out-empty">Running... (first run may take a few seconds while libraries load — MATLAB code can take longer to start)</span>';
+  execMeta.style.display = 'none';
+  langBadge.style.display = 'none';
+  labReportBtn.style.display = 'none';
+  lastRun = null;
+
+  const stdin = stdinBox.value;
+
+  fetch('/api/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, stdin }),
+  })
+    .then(r => r.json())
+    .then(data => renderOutput(data, myRun, code))
+    .catch(err => {
+      if (myRun !== runSeq) return;
+      outputBody.innerHTML = `<div class="out-stderr">Network error: ${escHtml(err.message)}</div>`;
+      setDot('error', 'error');
+    });
+}
+
+cm.on('change', () => {
+  const code = cm.getValue();
+  clearTimeout(timer);
+
+  // Language-aware syntax highlighting — switches mode as you type, matching
+  // the same detection the auto-run gating below already relies on.
+  const isMatlab = looksLikeMatlab(code);
+  const wantMode = isMatlab ? 'text/x-octave' : 'python';
+  if (cm.getOption('mode') !== wantMode) cm.setOption('mode', wantMode);
+
+  if (!code.trim()) {
+    panel.classList.remove('visible');
+    stdinPanel.classList.remove('visible');
+    return;
+  }
+  panel.classList.add('visible');
+  // Show stdin panel immediately when input() is detected while typing
+  if (hasInputCall(code)) {
+    stdinPanel.classList.add('visible');
+  } else {
+    stdinPanel.classList.remove('visible');
+  }
+
+  if (looksIncomplete(code)) {
+    // Unbalanced brackets/quotes or an unclosed try: — the user is still mid-edit.
+    // Don't auto-run on a snapshot that's guaranteed to be a SyntaxError; wait for
+    // either more typing (which may resolve it) or an explicit Run click.
+    setDot('', 'code looks incomplete — click Run ▶ when ready');
+    outputBody.innerHTML = '<span class="out-empty">Looks like you\'re still editing (unclosed bracket/quote/try) — click Run ▶ when ready.</span>';
+    return;
+  }
+
+  if (isMatlab) {
+    // MATLAB can take up to a minute to start — don't auto-fire it on every pause.
+    setDot('', 'click Run ▶ to execute (MATLAB detected)');
+    outputBody.innerHTML = '<span class="out-empty">MATLAB code detected — click Run ▶ when ready (may take up to a minute).</span>';
+    return;
+  }
+
+  setDot('running', 'waiting...');
+  timer = setTimeout(runCode, 1500);
+});
+
+runBtn.addEventListener('click', () => {
+  clearTimeout(timer);
+  if (cm.getValue().trim()) runCode();
+});
+
+labReportBtn.addEventListener('click', () => {
+  if (!lastRun) return;
+  const originalLabel = labReportBtn.textContent;
+  labReportBtn.disabled = true;
+  labReportBtn.textContent = 'Generating…';
+
+  fetch('/api/lab_report', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(lastRun),
+  })
+    .then(async r => {
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error(err.error || `Server returned ${r.status}`);
+      }
+      return r.blob();
+    })
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'lab_report.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    })
+    .catch(err => {
+      alert(`Could not generate lab report: ${err.message}`);
+    })
+    .finally(() => {
+      labReportBtn.disabled = false;
+      labReportBtn.textContent = originalLabel;
+    });
+});
+
+// Re-run when user changes stdin values
+stdinBox.addEventListener('change', () => {
+  if (cm.getValue().trim()) runCode();
+});
+
+stdinBox.addEventListener('input', () => {
+  stdinPanel.classList.remove('needs-attention');
+});
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 </script>
 </body>
 </html>
